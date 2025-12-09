@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import { useRouter } from "next/navigation";
 export default function SignupPage() {
   const [form, setForm] = useState({
     user: "",
@@ -13,7 +13,7 @@ export default function SignupPage() {
     state: "",
     pincode: ""
   });
-
+  const router=useRouter();
   const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
@@ -31,8 +31,9 @@ export default function SignupPage() {
 
       const data = await res.json();
       if (res.ok) {
-        setMessage(data.message);
+        setMessage(data.msg);
         setForm({ user: '', email: '', password: '', phone: '', street: '', city: '', state: '', pincode: '' });
+        router.push('/login')
       } else {
         setMessage(data.error);
       }
@@ -43,29 +44,135 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen p-5 bg-orange-50">
-      <form onSubmit={handleSubmit} className="w-full max-w-md p-10 bg-white border-l-4 border-orange-500 rounded-xl shadow-lg">
-        <h1 className="text-3xl font-extrabold mb-6 text-center text-orange-600">SIGN UP</h1>
+    <div className="min-h-screen w-full bg-gradient-to-b from-white to-orange-400 flex justify-center items-center p-6">
+      {/* MAIN WRAPPER */}
+      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl grid grid-cols-1 md:grid-cols-2 overflow-hidden">
 
-        {message && <p className="mb-4 text-center text-red-500 font-semibold">{message}</p>}
+        {/* LEFT SIDE IMAGE UI */}
+        <div className="bg-gradient-to-b from-white to-orange-400 p-10 flex flex-col justify-center">
+          <img
+            src="/rider-illustration.png" // put your illustration here
+            alt="Rider Image"
+            className="w-80 mx-auto mb-6"
+          />
 
-        {Object.keys(form).map((key) => (
-          <div className="mb-4" key={key}>
-            <label className="block mb-1 font-bold text-gray-700 capitalize" htmlFor={key}>{key}</label>
+          <h1 className="text-4xl font-bold text-black leading-tight text-center">
+            Earn upto ₹50,000 with<br /> 
+            <span className="text-green-800">Fast Delivery. Join Now!</span>
+          </h1>
+
+          <p className="mt-4 text-black text-center font-medium">
+            Joining bonus ₹4000 | Upto ₹10 lacs insurance | Weekly payout
+          </p>
+        </div>
+
+    <div className="p-10 flex flex-col justify-center">
+            <div className="flex gap-5">
+          <h2 className="text-3xl font-bold mb-6 text-gray-900">
+            Become a Delivery Partner |
+          </h2>
+            <button onClick={()=>{router.replace('/riderlogin')}} className="bg-yellow-200 text-xl font-bold mb-6 text-gray-900  size-18 p-1.5 rounded-xl">login</button>
+          </div>{/* FORM */}
+          <div className="grid grid-cols-2 gap-4">
+
             <input
-              type={key === 'password' ? 'password' : 'text'}
-              id={key}
-              name={key}
-              value={form[key]}
+              type="text"
+              name="name"
+              placeholder="Full Name*"
+              value={form.name}
               onChange={handleChange}
-              className="w-full p-3 border-2 border-orange-300 rounded focus:border-orange-500 focus:ring focus:ring-orange-200 outline-none"
-              required
+              className="border p-3 rounded-lg w-full"
             />
-          </div>
-        ))}
 
-        <button type="submit" className="w-full p-3 mt-4 bg-orange-500 text-white font-bold rounded hover:bg-orange-600 transition">Sign Up</button>
-      </form>
-    </div>
+            <input
+              type="text"
+              name="phone"
+              maxLength="10"
+              placeholder="Phone*"
+              value={form.phone}
+              onChange={handleChange}
+              className="border p-3 rounded-lg w-full"
+            />
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Email*"
+              value={form.email}
+              onChange={handleChange}
+              className="border p-3 rounded-lg w-full col-span-2"
+            />
+
+            <input
+              type="password"
+              name="password"
+              placeholder="Password*"
+              value={form.password}
+              onChange={handleChange}
+              className="border p-3 rounded-lg w-full col-span-2"
+            />
+
+            {/* CITY */}
+            <select
+              name="city"
+              value={form.city}
+              onChange={handleChange}
+              className="border p-3 rounded-lg w-full col-span-2"
+            >
+              <option value="">Select City*</option>
+              <option>Durgapur</option>
+              <option>Kolkata</option>
+              <option>Delhi</option>
+              <option>Mumbai</option>
+            </select>
+
+            {/* DOCUMENTS */}
+            <input
+              type="text"
+              name="aadhar"
+              placeholder="Aadhar Number*"
+              value={form.aadhar}
+              onChange={handleChange}
+              className="border p-3 rounded-lg w-full col-span-2"
+            />
+
+            <input
+              type="text"
+              name="drivingLicense"
+              placeholder="Driving License Number*"
+              value={form.drivingLicense}
+              onChange={handleChange}
+              className="border p-3 rounded-lg w-full col-span-2"
+            />
+
+            <input
+              type="text"
+              name="bikeRC"
+              placeholder="Bike RC Number*"
+              value={form.bikeRC}
+              onChange={handleChange}
+              className="border p-3 rounded-lg w-full col-span-2"
+            />
+
+            {/* PHOTO URL */}
+            <input
+              type="text"
+              name="photo"
+              placeholder="Photo URL (optional)"
+              value={form.photo}
+              onChange={handleChange}
+              className="border p-3 rounded-lg w-full col-span-2"
+            />
+
+          </div>
+
+          {/* SUBMIT BTN */}
+          <button className="mt-6 bg-black text-white w-full p-3 text-lg font-bold rounded-lg hover:opacity-80 transition">
+            Join to Earn
+          </button>
+        </div>
+      </div></div>
   );
 }
+
+ 

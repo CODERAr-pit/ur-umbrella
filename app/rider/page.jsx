@@ -21,12 +21,12 @@ export default function RiderSignup() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-yellow-300 to-green-400 flex justify-center items-center p-6">
+    <div className="min-h-screen w-full bg-gradient-to-b from-white to-orange-400 flex justify-center items-center p-6">
       {/* MAIN WRAPPER */}
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl grid grid-cols-1 md:grid-cols-2 overflow-hidden">
 
         {/* LEFT SIDE IMAGE UI */}
-        <div className="bg-gradient-to-b from-yellow-300 to-green-400 p-10 flex flex-col justify-center">
+        <div className="bg-gradient-to-b from-white to-orange-400 p-10 flex flex-col justify-center">
           <img
             src="/rider-illustration.png" // put your illustration here
             alt="Rider Image"

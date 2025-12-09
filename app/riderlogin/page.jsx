@@ -27,7 +27,7 @@ export default function RiderLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-b from-yellow-300 to-green-300">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-b from-white to-orange-400">
       <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
           Rider Login
