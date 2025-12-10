@@ -1,5 +1,6 @@
 import { addressDummyData } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
+import { METHODS } from "http";
 import React, { useEffect, useState } from "react";
 
 const OrderSummary = () => {
@@ -20,7 +21,11 @@ const OrderSummary = () => {
   };
 
   const createOrder = async () => {
-
+      const res=await fetch('/api/orderplace',
+        {method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)}
+      );
   }
 
   useEffect(() => {

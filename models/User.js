@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema({
       enum: ["customer"],
       default: "customer",
     },
+    history:[{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "history",
+    },],
 }, { timestamps: true }); // adds createdAt and updatedAt automatically
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

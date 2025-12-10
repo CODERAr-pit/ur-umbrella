@@ -1,30 +1,18 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import User from "@/models/User"; // Make sure this path is correct!
-import mongoose from "mongoose";
+import User from "@/models/User"; 
+import Seller from "@/models/Seller"; 
+import { dbConnect } from "@/lib/DbConnect"; 
 import bcrypt from "bcryptjs";
 
-// Helper to connect to DB
-const connectDB = async () => {
-  if (mongoose.connections[0].readyState) return;
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-  } catch (error) {
-    console.error("Error connecting to database:", error);
-  }
-};
-
-const handler = NextAuth({
-  // 1. Configure Providers
+export const authOptions = {
   providers: [
-    // --- Google Provider (Login Only Strategy) ---
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
 
-    // --- Credentials Provider (Email/Password) ---
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -32,84 +20,87 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        await connectDB();
-
-        // A. Find User
+        await dbConnect();
+        
+        // 1. Check Customer
         const user = await User.findOne({ email: credentials.email });
-        if (!user) {
-          throw new Error("No user found with this email");
+        if (user && (await bcrypt.compare(credentials.password, user.password))) {
+           return { id: user._id.toString(), name: user.user, email: user.email, role: "customer" };
         }
 
-        // B. Check Password
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) {
-          throw new Error("Incorrect Password");
+        // 2. Check Seller
+        const seller = await Seller.findOne({ email: credentials.email });
+        if (seller && (await bcrypt.compare(credentials.password, seller.password))) {
+           return { id: seller._id.toString(), name: seller.name, email: seller.email, role: "seller" };
         }
 
-        // C. Return User (Success)
-        return { id: user._id.toString(), email: user.email, name: user.name };
+        return null; // Login failed
       },
     }),
   ],
-
-  // 2. Configure Logic (Callbacks)
+  
   callbacks: {
-    // --- SIGN IN CHECK (The "Gatekeeper") ---
-    async signIn({ user, account }) {
-      // Logic: If user tries to login with Google, check if they exist in DB first.
-      if (account.provider === "google") {
-        try {
-          await connectDB();
-          const existingUser = await User.findOne({ email: user.email });
-
-          if (!existingUser) {
-            // BLOCK LOGIN: User doesn't exist in DB. 
-            // Redirect to Register page with error message.
-            return "/register?error=Please create an account manually first to provide required details."; 
-          }
-          
-          return true; // ALLOW LOGIN: User exists.
-        } catch (error) {
-          console.log("Error checking user:", error);
-          return false;
-        }
-      }
-      return true; // Allow Credentials login to pass
-    },
-
-    // --- JWT CREATION ---
-    async jwt({ token, user }) {
-      // If user just logged in, add their ID to the token
+    // ⚡ MAGIC HAPPENS HERE
+    async jwt({ token, user, account }) {
+      
+      // Case A: Credentials Login (User object comes from authorize, has ID/Role already)
       if (user) {
         token.id = user.id;
+        token.role = user.role;
       }
+
+      // Case B: Google Login (First time sign-in)
+      // Google gives us the email, but NOT the MongoDB _id or Role. We must find it.
+      if (account && account.provider === "google") {
+        await dbConnect();
+        
+        // 1. Is this email a Customer?
+        const dbUser = await User.findOne({ email: token.email });
+        if (dbUser) {
+          token.id = dbUser._id.toString();
+          token.role = "customer";
+        } 
+        else {
+          // 2. Is this email a Seller?
+          const dbSeller = await Seller.findOne({ email: token.email });
+          if (dbSeller) {
+             token.id = dbSeller._id.toString();
+             token.role = "seller";
+          }
+        }
+      }
+
       return token;
     },
 
-    // --- SESSION CREATION (What the Frontend sees) ---
+    // Pass the data from Token -> Client Session
     async session({ session, token }) {
       if (session.user) {
-        await connectDB();
-        // Fetch fresh data from DB to ensure roles (isSeller) are up to date
-        const dbUser = await User.findOne({ email: session.user.email });
-        
-        if (dbUser) {
-          session.user.id = dbUser._id.toString();
-          session.user.isSeller = dbUser.isSeller || false;
-          // You can add phone/address here if you need it in the Navbar
-        }
+        session.user._id = token.id; // Correct MongoDB ID
+        session.user.role = token.role; // "customer" or "seller"
       }
       return session;
     },
-  },
 
-  session: {
-    strategy: "jwt",
+    // Optional: Block Google Login if email doesn't exist in DB at all
+    async signIn({ account, profile }) {
+      if (account.provider === "google") {
+        await dbConnect();
+        const userExists = await User.findOne({ email: profile.email });
+        const sellerExists = await Seller.findOne({ email: profile.email });
+        
+        // Only allow login if they exist in one of your collections
+        if (!userExists && !sellerExists) {
+          return false; // Redirects to error page saying "Access Denied"
+        }
+      }
+      return true;
+    }
   },
+  
+  session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: "/login", // Redirects here if auth fails
-  },
-});
+};
 
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
