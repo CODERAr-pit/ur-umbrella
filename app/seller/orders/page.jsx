@@ -5,7 +5,7 @@ import { useAppContext } from "@/context/AppContext"; // Don't forget this impor
 import Footer from "@/components/seller/Footer";
 import Loading from "@/components/Loading";
 import { useSession } from "next-auth/react";
-import { assets } from "@/assets/assets"; // Ensure this import exists
+import { assets } from "@/assets/assets";
 
 const Orders = () => {
 

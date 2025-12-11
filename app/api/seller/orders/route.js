@@ -2,8 +2,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import history from "@/models/history";
+import { dbConnect } from "@/lib/DbConnect";
 
 export async function GET(){
+    await dbConnect()
     const session = await getServerSession(authOptions);
     if(!session){
         return NextResponse.json({
