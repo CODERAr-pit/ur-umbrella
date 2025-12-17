@@ -1,83 +1,110 @@
 "use client";
+
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RiderLogin() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState("");
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const router = useRouter();
 
-    const res = await fetch("/api/rider/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
+  function handleChange(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
 
-    const data = await res.json();
-    setMsg(data.msg);
-
-    if (res.status === 200) {
-      // redirect to dashboard
-      window.location.href = "/rider/dashboard";
+  async function handleSubmit() {
+    if (!form.email || !form.password) {
+      alert("Please enter both email and password.");
+      return;
     }
-  };
+
+    try {
+      console.log("🚀 Sending Login Request...");
+      
+      const response = await fetch('/api/riderlogin', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
+
+      const data = await response.json();
+      console.log("✅ Server Response:", data);
+
+      // CHECK: Look for success flag OR status 200
+      if (response.ok && (data.success || response.status === 200)) {
+        
+        console.log("🔀 Redirecting to Dashboard...");
+        
+        // Force redirect
+        router.push('/rider/dashboard');
+        
+        // Fallback: If router.push fails for some reason, use standard window location
+        // window.location.href = '/rider/dashboard'; 
+
+      } else {
+        console.error("❌ Login Failed Logic:", data);
+        alert(data.msg || "Login Failed");
+      }
+
+    } catch (error) {
+      console.error("🔥 Network Error:", error);
+      alert("Something went wrong. Check console.");
+    }
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-b from-white to-orange-400">
-      <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
-          Rider Login
-        </h1>
+    <div className="min-h-screen w-full bg-gradient-to-b from-white to-orange-400 flex justify-center items-center p-6">
+      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl grid grid-cols-1 md:grid-cols-2 overflow-hidden">
 
-        {msg && (
-          <p className="text-center text-sm text-red-600 mb-3">{msg}</p>
-        )}
+        {/* LEFT SIDE */}
+        <div className="bg-gradient-to-b from-white to-orange-400 p-10 flex flex-col justify-center items-center">
+          <h1 className="text-3xl font-bold text-black text-center">
+            Welcome Back, <br />
+            <span className="text-green-800">Partner!</span>
+          </h1>
+        </div>
 
-        <form className="space-y-4" onSubmit={handleLogin}>
-          {/* Email */}
-          <div>
-            <label className="text-sm font-semibold">Email</label>
+        {/* RIGHT SIDE: FORM */}
+        <div className="p-12 flex flex-col justify-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Rider Login</h2>
+
+          <div className="flex flex-col gap-5">
             <input
               type="email"
-              className="w-full mt-1 p-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-green-600"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
+              name="email"
+              placeholder="Email Address"
+              value={form.email}
+              onChange={handleChange}
+              className="border p-4 rounded-lg w-full text-black bg-gray-50"
             />
-          </div>
 
-          {/* Password */}
-          <div>
-            <label className="text-sm font-semibold">Password</label>
             <input
               type="password"
-              className="w-full mt-1 p-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-green-600"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              required
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              className="border p-4 rounded-lg w-full text-black bg-gray-50"
             />
+
+            <button 
+              onClick={handleSubmit} 
+              className="mt-4 bg-black text-white w-full p-4 text-lg font-bold rounded-lg hover:bg-gray-800 transition"
+            >
+              Login
+            </button>
+            
+            <button 
+                onClick={() => router.push('/ridersignup')}
+                className="text-center text-sm text-gray-500 hover:text-black mt-4"
+            >
+                Don't have an account? Sign up
+            </button>
           </div>
-
-          <button
-            type="submit"
-            className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 duration-200"
-          >
-            Login
-          </button>
-        </form>
-
-        <p className="text-center text-sm mt-4">
-          Don’t have an account?{" "}
-          <a href="/rider" className="text-blue-600 font-semibold">
-            Register here
-          </a>
-        </p>
+        </div>
       </div>
     </div>
   );

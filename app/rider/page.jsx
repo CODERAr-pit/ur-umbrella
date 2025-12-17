@@ -15,22 +15,57 @@ export default function RiderSignup() {
     bikeRC: "",
     photo: "",
   });
-  const router=useRouter();
+  
+  const router = useRouter();
+
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
+  async function handleSubmit() {
+    // Basic validation
+    if (!form.name || !form.email || !form.password) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/ridersignup', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        // FIX: Send 'form' directly, not nested inside another object
+        body: JSON.stringify(form) 
+      });
+
+      const data = await response.json();
+
+      if (response.status === 201 || data.success) {
+        alert("Registration Successful!");
+        router.push('/riderlogin');
+      } else {
+        alert(data.msg || "Signup Failed");
+        console.error("Signup Failed:", data.error);
+      }
+
+    } catch (error) {
+      console.error("Network Error:", error);
+      alert("Something went wrong");
+    }
+  }
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-white to-orange-400 flex justify-center items-center p-6">
-      {/* MAIN WRAPPER */}
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl grid grid-cols-1 md:grid-cols-2 overflow-hidden">
 
         {/* LEFT SIDE IMAGE UI */}
         <div className="bg-gradient-to-b from-white to-orange-400 p-10 flex flex-col justify-center">
+          {/* Ensure you have this image in your public folder */}
           <img
-            src="/rider-illustration.png" // put your illustration here
-            alt="Rider Image"
-            className="w-80 mx-auto mb-6"
+            src="/rider-illustration.png" 
+            alt="Rider Illustration"
+            className="w-80 mx-auto mb-6 object-contain"
           />
 
           <h1 className="text-4xl font-bold text-black leading-tight text-center">
@@ -44,13 +79,20 @@ export default function RiderSignup() {
         </div>
 
         {/* RIGHT SIDE FORM */}
-        <div className="p-10 flex flex-col justify-center">
-            <div className="flex gap-5">
-          <h2 className="text-3xl font-bold mb-6 text-gray-900">
-            Become a Delivery Partner |
-          </h2>
-            <button onClick={()=>{router.replace('/riderlogin')}} className="bg-yellow-200 text-xl font-bold mb-6 text-gray-900  size-18 p-1.5 rounded-xl">login</button>
-          </div>{/* FORM */}
+        <div className="p-10 flex flex-col justify-center overflow-y-auto max-h-screen">
+            <div className="flex gap-5 items-center mb-6">
+              <h2 className="text-3xl font-bold text-gray-900">
+                Become a Partner
+              </h2>
+              <button 
+                onClick={()=>{router.replace('/riderlogin')}} 
+                className="bg-yellow-200 text-sm font-bold text-gray-900 px-4 py-2 rounded-xl hover:bg-yellow-300 transition"
+              >
+                Login Instead
+              </button>
+            </div>
+
+          {/* FORM INPUTS */}
           <div className="grid grid-cols-2 gap-4">
 
             <input
@@ -59,17 +101,16 @@ export default function RiderSignup() {
               placeholder="Full Name*"
               value={form.name}
               onChange={handleChange}
-              className="border p-3 rounded-lg w-full"
+              className="border p-3 rounded-lg w-full text-black"
             />
 
             <input
-              type="text"
+              type="number"
               name="phone"
-              maxLength="10"
               placeholder="Phone*"
               value={form.phone}
               onChange={handleChange}
-              className="border p-3 rounded-lg w-full"
+              className="border p-3 rounded-lg w-full text-black"
             />
 
             <input
@@ -78,7 +119,7 @@ export default function RiderSignup() {
               placeholder="Email*"
               value={form.email}
               onChange={handleChange}
-              className="border p-3 rounded-lg w-full col-span-2"
+              className="border p-3 rounded-lg w-full col-span-2 text-black"
             />
 
             <input
@@ -87,7 +128,7 @@ export default function RiderSignup() {
               placeholder="Password*"
               value={form.password}
               onChange={handleChange}
-              className="border p-3 rounded-lg w-full col-span-2"
+              className="border p-3 rounded-lg w-full col-span-2 text-black"
             />
 
             {/* CITY */}
@@ -95,13 +136,13 @@ export default function RiderSignup() {
               name="city"
               value={form.city}
               onChange={handleChange}
-              className="border p-3 rounded-lg w-full col-span-2"
+              className="border p-3 rounded-lg w-full col-span-2 text-black"
             >
               <option value="">Select City*</option>
-              <option>Durgapur</option>
-              <option>Kolkata</option>
-              <option>Delhi</option>
-              <option>Mumbai</option>
+              <option value="Durgapur">Durgapur</option>
+              <option value="Kolkata">Kolkata</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Mumbai">Mumbai</option>
             </select>
 
             {/* DOCUMENTS */}
@@ -111,7 +152,7 @@ export default function RiderSignup() {
               placeholder="Aadhar Number*"
               value={form.aadhar}
               onChange={handleChange}
-              className="border p-3 rounded-lg w-full col-span-2"
+              className="border p-3 rounded-lg w-full col-span-2 text-black"
             />
 
             <input
@@ -120,7 +161,7 @@ export default function RiderSignup() {
               placeholder="Driving License Number*"
               value={form.drivingLicense}
               onChange={handleChange}
-              className="border p-3 rounded-lg w-full col-span-2"
+              className="border p-3 rounded-lg w-full col-span-2 text-black"
             />
 
             <input
@@ -129,7 +170,7 @@ export default function RiderSignup() {
               placeholder="Bike RC Number*"
               value={form.bikeRC}
               onChange={handleChange}
-              className="border p-3 rounded-lg w-full col-span-2"
+              className="border p-3 rounded-lg w-full col-span-2 text-black"
             />
 
             {/* PHOTO URL */}
@@ -139,13 +180,12 @@ export default function RiderSignup() {
               placeholder="Photo URL (optional)"
               value={form.photo}
               onChange={handleChange}
-              className="border p-3 rounded-lg w-full col-span-2"
+              className="border p-3 rounded-lg w-full col-span-2 text-black"
             />
 
           </div>
 
-          {/* SUBMIT BTN */}
-          <button className="mt-6 bg-black text-white w-full p-3 text-lg font-bold rounded-lg hover:opacity-80 transition">
+          <button onClick={handleSubmit} className="mt-6 bg-black text-white w-full p-3 text-lg font-bold rounded-lg hover:opacity-80 transition">
             Join to Earn
           </button>
         </div>

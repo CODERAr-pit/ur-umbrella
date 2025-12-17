@@ -1,99 +1,91 @@
-'use client'
-import { productsDummyData, userDummyData } from "@/assets/assets";
-import { useRouter } from "next/navigation";
+"use client";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export const AppContext = createContext();
 
-export const useAppContext = () => {
-    return useContext(AppContext)
-}
+export const AppContextProvider = ({ children }) => {
+    const router = useRouter();
+    const currency = "$"; // Or "₹"
+    
+    // 1. Initialize products as an empty array (NOT dummy data)
+    const [products, setProducts] = useState([]);
+    const [cartItems, setCartItems] = useState({});
 
-export const AppContextProvider = (props) => {
+    // 2. Fetch Real Products from Database
+    const fetchProducts = async () => {
+        try {
+            const res = await fetch('/api/product');
+            const data = await res.json();
+            if (res.ok) {
+                // Handle both { products: [...] } and direct array [...] responses
+                setProducts(data.products || data);
+            } else {
+                console.error("Failed to load products");
+            }
+        } catch (error) {
+            console.error("API Error:", error);
+        }
+    };
 
-    const currency = process.env.NEXT_PUBLIC_CURRENCY
-    const router = useRouter()
+    // 3. Load data when App starts
+    useEffect(() => {
+        fetchProducts();
+    }, []);
 
-    const [products, setProducts] = useState([])
-    const [userData, setUserData] = useState(false)
-    const [isSeller, setIsSeller] = useState(true)
-    const [cartItems, setCartItems] = useState({})
-
-    const fetchProductData = async () => {
-        setProducts(productsDummyData)
-    }
-
-    const fetchUserData = async () => {
-        setUserData(userDummyData)
-    }
-
-    const addToCart = async (itemId) => {
-
+    // --- CART LOGIC (Standard Implementation) ---
+    const addToCart = (itemId) => {
         let cartData = structuredClone(cartItems);
         if (cartData[itemId]) {
             cartData[itemId] += 1;
-        }
-        else {
+        } else {
             cartData[itemId] = 1;
         }
         setCartItems(cartData);
-
-    }
-
-    const updateCartQuantity = async (itemId, quantity) => {
-
-        let cartData = structuredClone(cartItems);
-        if (quantity === 0) {
-            delete cartData[itemId];
-        } else {
-            cartData[itemId] = quantity;
-        }
-        setCartItems(cartData)
-
-    }
+    };
 
     const getCartCount = () => {
         let totalCount = 0;
-        for (const items in cartItems) {
-            if (cartItems[items] > 0) {
-                totalCount += cartItems[items];
+        for (const item in cartItems) {
+            if (cartItems[item] > 0) {
+                totalCount += cartItems[item];
             }
         }
         return totalCount;
-    }
+    };
 
     const getCartAmount = () => {
         let totalAmount = 0;
-        for (const items in cartItems) {
-            let itemInfo = products.find((product) => product._id === items);
-            if (cartItems[items] > 0) {
-                totalAmount += itemInfo.offerPrice * cartItems[items];
+        for (const item in cartItems) {
+            if (cartItems[item] > 0) {
+                // Find product in the REAL products array
+                let itemInfo = products.find((product) => product._id === item);
+                if (itemInfo) {
+                    totalAmount += (itemInfo.offerPrice || itemInfo.price) * cartItems[item];
+                }
             }
         }
-        return Math.floor(totalAmount * 100) / 100;
-    }
-
-    useEffect(() => {
-        fetchProductData()
-    }, [])
-
-    useEffect(() => {
-        fetchUserData()
-    }, [])
+        return totalAmount;
+    };
 
     const value = {
-        currency, router,
-        isSeller, setIsSeller,
-        userData, fetchUserData,
-        products, fetchProductData,
-        cartItems, setCartItems,
-        addToCart, updateCartQuantity,
-        getCartCount, getCartAmount
-    }
+        products, 
+        currency,
+        router,
+        cartItems,
+        addToCart,
+        getCartCount,
+        getCartAmount,
+        setCartItems
+    };
 
     return (
         <AppContext.Provider value={value}>
-            {props.children}
+            {children}
         </AppContext.Provider>
-    )
-}
+    );
+};
+
+export const useAppContext = () => {
+    return useContext(AppContext);
+};

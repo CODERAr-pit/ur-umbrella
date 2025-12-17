@@ -7,6 +7,9 @@ import NewsLetter from "@/components/NewsLetter";
 import FeaturedProduct from "@/components/FeaturedProduct";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import TrackingMap from "@/components/trackingmap";
+
+// REMOVED: Map import and dynamic loading
 
 const Home = () => {
   return (
@@ -17,6 +20,7 @@ const Home = () => {
         <HomeProducts />
         <FeaturedProduct />
         <Banner />
+        <TrackingMap />
         <NewsLetter />
       </div>
       <Footer />

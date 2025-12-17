@@ -1,14 +1,14 @@
+'use client'
+import React, { useEffect, useState } from "react";
 import { addressDummyData } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
-import { METHODS } from "http";
-import React, { useEffect, useState } from "react";
 
 const OrderSummary = () => {
-
-  const { currency, router, getCartCount, getCartAmount } = useAppContext()
+  // 1. Hook called INSIDE the component
+  const { currency, router, getCartCount, getCartAmount, products, cartItems } = useAppContext();
+  
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const [userAddresses, setUserAddresses] = useState([]);
 
   const fetchUserAddresses = async () => {
@@ -20,12 +20,60 @@ const OrderSummary = () => {
     setIsDropdownOpen(false);
   };
 
+  // 2. Logic moved INSIDE the component to access state
   const createOrder = async () => {
-      const res=await fetch('/api/orderplace',
-        {method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)}
-      );
+    // A. Validation
+    if (!selectedAddress) {
+        alert("Please select a delivery address");
+        return;
+    }
+
+    // B. Construct items array
+    const itemsToBuy = [];
+    Object.keys(cartItems).forEach((key) => {
+        if (cartItems[key] > 0) {
+            const product = products.find(p => p._id === key);
+            if (product) {
+                itemsToBuy.push({ 
+                    _id: key, 
+                    quantity: cartItems[key] 
+                });
+            }
+        }
+    });
+
+    if (itemsToBuy.length === 0) {
+        alert("Your cart is empty!");
+        return;
+    }
+
+    // C. Calculate Total
+    const amount = getCartAmount() + Math.floor(getCartAmount() * 0.02);
+
+    // D. Send Request
+    try {
+        const res = await fetch('/api/orderplace', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                items: itemsToBuy,
+                amount: amount,
+                address: selectedAddress
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) { 
+            // SUCCESS: Redirect to Tracking Page
+            router.push(`/tracking?orderId=${data.order_id}`);
+        } else {
+            alert(data.msg || "Order failed");
+        }
+    } catch (error) {
+        console.error("Order Error:", error);
+        alert("Failed to place order.");
+    }
   }
 
   useEffect(() => {
