@@ -6,14 +6,31 @@ import Seemore from "./Seemore";
 
 // In Server Components, props is the first argument
 const HomeProducts = async (props) => {
-  // Check if page comes from a direct prop OR from searchParams (URL)
-  const pageNumber = props.page || (await props.searchParams)?.page || 1;
+  const searchParams = await props.searchParams;
+  
+  // 2. Handle Pagination logic
+  const pageNumber = searchParams?.page || 1;
   const page = parseInt(pageNumber);
-  
   let skip = (page - 1) * 10;
-  
+
+  // 3. Handle Search logic (looking for 'q')
+  const searchQuery = searchParams?.q || "";
+  console.log("SEARCH QUERY RECEIVED:", searchQuery);
+// Create a dynamic filter
+  let filter = {};
+  if (searchQuery) {
+    filter = {
+      $or: [
+        { name: { $regex: searchQuery, $options: "i" } },        // Search in name
+        { description: { $regex: searchQuery, $options: "i" } } // Search in description
+      ]
+    };
+  }
+
   await dbConnect();
-  const productsRaw = await product.find({})
+
+  // 4. Fetch filtered and paginated products
+  const productsRaw = await product.find(filter)
     .sort({ createdAt: -1 }) 
     .skip(skip)
     .limit(10)

@@ -10,16 +10,21 @@ import Footer from "@/components/Footer";
 import TrackingMap from "@/components/trackingmap";
 import { Suspense } from "react";
 import Loading from "@/components/Loading";
+import SearchBar from "@/components/SearchBar";
 // REMOVED: Map import and dynamic loading
 
-const Home = () => {
+const Home = ({ searchParams }) => {
   return (
     <>
       <Navbar/>
       <div className="px-6 md:px-16 lg:px-32">
+        <div className="flex w-full justify-center items-center py-2">
+          <SearchBar />
+        </div>
+        
         <HeaderSlider />
         <Suspense fallback={<Loading />}>
-        <HomeProducts page={1}/>
+        <HomeProducts searchParams={ searchParams }/>
       </Suspense>
         <FeaturedProduct />
         <Banner />
