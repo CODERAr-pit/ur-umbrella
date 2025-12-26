@@ -7,12 +7,9 @@ export const AppContext = createContext();
 export const AppContextProvider = ({ children }) => {
     const router = useRouter();
     const currency = "$"; // Or "₹"
-    
-    // 1. Initialize products as an empty array (NOT dummy data)
     const [products, setProducts] = useState([]);
     const [cartItems, setCartItems] = useState({});
 
-    // 2. Fetch Real Products from Database
     const fetchProducts = async () => {
         try {
             const res = await fetch('/api/product');

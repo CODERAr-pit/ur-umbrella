@@ -1,3 +1,4 @@
+'use client'
 import React from 'react';
 import { assets } from '@/assets/assets';
 import Image from 'next/image';
@@ -6,7 +7,6 @@ import { useAppContext } from '@/context/AppContext';
 const ProductCard = ({ product }) => {
     const { currency, router } = useAppContext();
 
-    // Safety check: If product data is missing, don't render anything
     if (!product) return null;
 
     return (
@@ -17,7 +17,7 @@ const ProductCard = ({ product }) => {
             <div className="cursor-pointer group relative bg-gray-500/10 rounded-lg w-full h-52 flex items-center justify-center overflow-hidden">
                 <Image
                     // FIX: Safe access to image array. Fallback to a placeholder if missing.
-                    src={product.image?.[0] || assets.box_icon} 
+                    src={product.images && product.images[0] ? product.images[0] : assets.box_icon} 
                     alt={product.name || "Product Image"}
                     className="group-hover:scale-105 transition object-cover w-4/5 h-4/5 md:w-full md:h-full"
                     width={800}

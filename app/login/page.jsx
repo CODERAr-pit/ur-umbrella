@@ -51,7 +51,6 @@ export default function LoginPage() {
             {message}
           </div>
         )}
-
         <form onSubmit={handleSubmit}>
           <div className="mb-5">
             <label htmlFor="email" className="block mb-2 font-bold text-black">EMAIL</label>

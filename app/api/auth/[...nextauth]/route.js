@@ -21,14 +21,12 @@ export const authOptions = {
       },
       async authorize(credentials) {
         await dbConnect();
-        
-        // 1. Check Customer
+
         const user = await User.findOne({ email: credentials.email });
         if (user && (await bcrypt.compare(credentials.password, user.password))) {
            return { id: user._id.toString(), name: user.user, email: user.email, role: "customer" };
         }
-
-        // 2. Check Seller
+        
         const seller = await Seller.findOne({ email: credentials.email });
         if (seller && (await bcrypt.compare(credentials.password, seller.password))) {
            return { id: seller._id.toString(), name: seller.name, email: seller.email, role: "seller" };
